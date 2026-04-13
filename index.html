@@ -1,796 +1,832 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VDC — Sistema de Control</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 <style>
-  :root {
-    --bg: #0a0a0b;
-    --bg2: #111113;
-    --bg3: #18181b;
-    --bg4: #1e1e22;
-    --border: #27272a;
-    --border2: #3f3f46;
-    --text: #fafafa;
-    --text2: #a1a1aa;
-    --text3: #71717a;
-    --accent: #00e5a0;
-    --accent2: #00b37d;
-    --red: #f87171;
-    --yellow: #fbbf24;
-    --blue: #60a5fa;
-    --purple: #a78bfa;
-    --font-mono: 'JetBrains Mono', monospace;
-    --font-display: 'Syne', sans-serif;
-  }
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --mono:'Courier New',monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --shadow:0 2px 8px rgba(0,0,0,0.13);
+  --radius:10px;
+  --cel:#00B0F0;--cel-bg:rgba(0,176,240,0.14);--cel-txt:#0070A0;
+  --amb:#FFBF00;--amb-bg:rgba(255,191,0,0.14);--amb-txt:#8A6200;
+  --roj:#C00000;--roj-bg:rgba(192,0,0,0.11);--roj-txt:#C00000;
+  --corp:#003C7D;
+}
+.panel{background:#D8D8D8;padding:14px;font-family:var(--sans);}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* HEADER */
+.hdr{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:10px 18px;display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;border:1px solid #c8c8c8;}
+.hdr-left{display:flex;align-items:center;}
+.logo-box{width:46px;height:46px;background:var(--corp);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-nm{font-family:'Arial Black',Arial,sans-serif;font-size:8px;font-weight:900;color:#fff;letter-spacing:.06em;margin-top:1px;}
+.div-v{width:1px;height:34px;background:#e0e0e0;margin:0 14px;}
+.ttl{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.1em;color:#111;}
+.sub{font-family:var(--sans);font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.hdr-r{display:flex;align-items:center;gap:8px;}
+.upd{font-family:var(--mono);font-size:9px;color:#999;}
+.btn-upd{font-family:var(--mono);font-size:10px;font-weight:700;padding:5px 14px;border:1.5px solid #111;background:#fff;color:#111;cursor:pointer;border-radius:6px;}
+.btn-upd:hover{background:#111;color:#fff;}
+.btn-upd:disabled{opacity:.5;cursor:not-allowed;}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    min-height: 100vh;
-  }
+/* LOADING */
+.loading-bar{height:2px;background:linear-gradient(90deg,#00B0F0,#003C7D);border-radius:1px;margin-bottom:11px;animation:loadpulse 1.2s infinite;}
+@keyframes loadpulse{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
+.loading-msg{font-family:var(--mono);font-size:9px;color:#888;text-align:center;padding:8px;letter-spacing:.05em;}
 
-  /* TOPBAR */
-  .topbar {
-    position: sticky; top: 0; z-index: 100;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    height: 52px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .topbar-left { display: flex; align-items: center; gap: 20px; }
-  .logo { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.05em; }
-  .logo span { color: var(--accent); }
-  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-  .topbar-right { display: flex; align-items: center; gap: 16px; }
-  .last-update { color: var(--text3); font-size: 11px; }
-  .btn-refresh {
-    background: transparent; border: 1px solid var(--border2);
-    color: var(--text2); font-family: var(--font-mono); font-size: 11px;
-    padding: 5px 12px; border-radius: 4px; cursor: pointer;
-    transition: all .15s;
-  }
-  .btn-refresh:hover { border-color: var(--accent); color: var(--accent); }
+/* KPIS */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-bottom:11px;}
+.kpi{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:11px 13px;border:1px solid #c8c8c8;position:relative;overflow:hidden;}
+.kpi-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--radius) var(--radius) 0 0;}
+.kl{font-family:var(--sans);font-size:9px;color:#777;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;margin-top:4px;}
+.kv{font-family:var(--mono);font-size:21px;font-weight:700;color:#111;line-height:1;}
+.ks{font-family:var(--sans);font-size:9px;color:#888;margin-top:4px;line-height:1.55;}
+.ks b{font-weight:600;}
 
-  /* NAV TABS */
-  .nav-tabs {
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex; gap: 0;
-    background: var(--bg);
-  }
-  .nav-tab {
-    padding: 12px 18px; font-family: var(--font-mono); font-size: 12px;
-    color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent;
-    transition: all .15s; user-select: none; white-space: nowrap;
-  }
-  .nav-tab:hover { color: var(--text2); }
-  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+/* CENTER */
+.center{display:grid;grid-template-columns:1fr 210px;gap:11px;margin-bottom:11px;align-items:stretch;}
 
-  /* MAIN */
-  .main { padding: 24px; max-width: 1600px; margin: 0 auto; }
+/* GANTT */
+.gcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid #c8c8c8;overflow:hidden;display:flex;flex-direction:column;}
+.gtb{display:flex;align-items:center;justify-content:space-between;padding:7px 13px;border-bottom:1px solid #d8d8d8;background:#f0f0f0;flex-shrink:0;}
+.gtitle{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#555;}
+.gtb-r{display:flex;align-items:center;gap:6px;}
+.zbtns{display:flex;gap:3px;}
+.zbtn{font-family:var(--mono);font-size:9px;padding:3px 7px;border:1px solid #bbb;background:#fff;color:#666;cursor:pointer;border-radius:4px;}
+.zbtn.act,.zbtn:hover{background:#333;color:#fff;border-color:#333;}
+.exp-btn{font-family:var(--mono);font-size:10px;padding:3px 8px;border:1px solid #bbb;background:#fff;color:#666;cursor:pointer;border-radius:4px;display:flex;align-items:center;gap:3px;}
+.exp-btn:hover{border-color:#333;color:#333;}
+.gscroll{overflow:auto;flex:1;}
+.gleg{display:flex;gap:10px;align-items:center;padding:5px 13px;border-top:1px solid #d8d8d8;background:#f0f0f0;flex-wrap:wrap;flex-shrink:0;}
+.leg{display:flex;align-items:center;gap:4px;font-family:var(--sans);font-size:9px;color:#666;}
 
-  /* SECTION */
-  .section { display: none; }
-  .section.active { display: block; }
+/* RIGHT */
+.rcol{display:flex;flex-direction:column;gap:9px;}
+.rcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid #c8c8c8;overflow:hidden;}
+.rcard-t{font-family:var(--mono);font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:#555;padding:7px 11px;border-bottom:1px solid #d8d8d8;background:#f0f0f0;}
+.rcard-b{padding:9px 11px;}
+.bar-item{display:flex;align-items:center;gap:5px;margin-bottom:6px;}
+.bar-item:last-child{margin-bottom:0;}
+.bar-lbl{font-family:var(--sans);font-size:9px;color:#555;width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.bar-track{flex:1;background:#ddd;border-radius:2px;height:7px;overflow:hidden;}
+.bar-fill{height:7px;border-radius:2px;}
+.bar-pct{font-family:var(--mono);font-size:9px;font-weight:700;width:28px;text-align:right;flex-shrink:0;}
+.bbdg{font-family:var(--mono);font-size:8px;font-weight:700;padding:1px 4px;border-radius:2px;flex-shrink:0;}
 
-  /* KPI GRID */
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
-  .kpi-card {
-    background: var(--bg2); border: 1px solid var(--border);
-    border-radius: 6px; padding: 16px 18px;
-    transition: border-color .15s;
-  }
-  .kpi-card:hover { border-color: var(--border2); }
-  .kpi-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
-  .kpi-value { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
-  .kpi-value.accent { color: var(--accent); }
-  .kpi-value.red { color: var(--red); }
-  .kpi-value.yellow { color: var(--yellow); }
-  .kpi-value.blue { color: var(--blue); }
-  .kpi-sub { font-size: 10px; color: var(--text3); margin-top: 6px; }
+/* BADGES */
+.bdg{display:inline-block;font-family:var(--mono);font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:.03em;white-space:nowrap;}
+.b-cel{background:var(--cel-bg);color:var(--cel-txt);border:0.5px solid rgba(0,176,240,0.3);}
+.b-amb{background:var(--amb-bg);color:var(--amb-txt);border:0.5px solid rgba(255,191,0,0.35);}
+.b-roj{background:var(--roj-bg);color:var(--roj-txt);border:0.5px solid rgba(192,0,0,0.25);}
+.b-gris{background:#f0f0f0;color:#888;border:0.5px solid #ddd;}
 
-  /* TABLE */
-  .table-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 24px; }
-  .table-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .table-title { font-family: var(--font-display); font-size: 13px; font-weight: 600; color: var(--text); }
-  .table-count { font-size: 11px; color: var(--text3); }
-  table { width: 100%; border-collapse: collapse; }
-  th { padding: 10px 14px; text-align: left; font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; }
-  td { padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text2); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr.clickable { cursor: pointer; }
-  tr.clickable:hover td { background: var(--bg3); color: var(--text); }
-  tr.selected td { background: var(--bg4); }
-  .td-name { color: var(--text); font-weight: 500; }
-  .td-mono { font-family: var(--font-mono); }
+/* TABLE */
+.tcard{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid #c8c8c8;overflow:hidden;}
+.ttb{display:flex;align-items:center;justify-content:space-between;padding:7px 13px;border-bottom:1px solid #d8d8d8;background:#f0f0f0;flex-wrap:wrap;gap:6px;}
+.ttitle{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#555;}
+.tfilts{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.tsrch{font-family:var(--mono);font-size:9px;padding:3px 8px;border:1px solid #bbb;border-radius:4px;background:#fff;color:#444;outline:none;width:150px;}
+.tsrch:focus{border-color:#555;}
+.tsel{font-family:var(--mono);font-size:9px;padding:3px 7px;border:1px solid #bbb;border-radius:4px;background:#fff;color:#444;cursor:pointer;outline:none;}
+.tsel.act{background:#333;color:#fff;border-color:#333;}
+.tclr{font-family:var(--mono);font-size:9px;padding:3px 7px;border:1px solid #ccc;border-radius:4px;background:#fff;color:#999;cursor:pointer;}
+.tclr:hover{color:#444;border-color:#777;}
+.twrap{overflow:auto;max-height:200px;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:#e8e8e8;position:sticky;top:0;z-index:5;}
+thead th{padding:5px 8px;text-align:left;font-family:var(--mono);font-size:8px;letter-spacing:.07em;color:#555;text-transform:uppercase;font-weight:600;white-space:nowrap;border-bottom:1.5px solid #c8c8c8;cursor:pointer;}
+thead th:hover{background:#ddd;color:#222;}
+tbody tr{border-bottom:1px solid #ebebeb;}
+tbody tr:hover{background:#f5f5f5;}
+tbody td{padding:5px 8px;font-family:var(--sans);font-size:9px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;}
+.tftr{display:flex;justify-content:space-between;align-items:center;padding:5px 13px;border-top:1px solid #d8d8d8;background:#f0f0f0;}
+.tfinfo{font-family:var(--sans);font-size:9px;color:#777;}
+.tfflt{font-family:var(--mono);font-size:9px;color:#555;}
 
-  /* BADGES */
-  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 3px; font-size: 10px; font-weight: 500; white-space: nowrap; }
-  .badge::before { content:''; width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-  .badge-proceso { background: rgba(96,165,250,.1); color: var(--blue); border: 1px solid rgba(96,165,250,.2); }
-  .badge-proceso::before { background: var(--blue); }
-  .badge-pendiente { background: rgba(113,113,122,.1); color: var(--text3); border: 1px solid rgba(113,113,122,.2); }
-  .badge-pendiente::before { background: var(--text3); }
-  .badge-finalizado { background: rgba(0,229,160,.1); color: var(--accent); border: 1px solid rgba(0,229,160,.2); }
-  .badge-finalizado::before { background: var(--accent); }
-  .crit-alta { color: var(--red); font-weight: 600; }
-  .crit-media { color: var(--yellow); }
-  .crit-baja { color: var(--accent); }
-  .crit-cerrado { color: var(--text3); }
-
-  /* PROGRESS BAR */
-  .progress-wrap { display: flex; align-items: center; gap: 8px; }
-  .progress-bar { flex: 1; height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; min-width: 60px; }
-  .progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width .3s; }
-  .progress-fill.red { background: var(--red); }
-  .progress-fill.yellow { background: var(--yellow); }
-  .progress-pct { font-size: 11px; color: var(--text2); width: 32px; text-align: right; flex-shrink: 0; }
-
-  /* GANTT */
-  .gantt-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 24px; }
-  .gantt-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-  .gantt-body { overflow-x: auto; }
-  .gantt-row { display: flex; border-bottom: 1px solid var(--border); min-height: 44px; }
-  .gantt-row:last-child { border-bottom: none; }
-  .gantt-row:hover { background: var(--bg3); }
-  .gantt-label { width: 240px; flex-shrink: 0; padding: 8px 14px; display: flex; align-items: center; gap: 8px; border-right: 1px solid var(--border); }
-  .gantt-label-text { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .gantt-level-proj { color: var(--text); font-weight: 600; font-size: 12px; }
-  .gantt-level-fase { color: var(--text2); padding-left: 14px; }
-  .gantt-level-tarea { color: var(--text3); padding-left: 28px; font-size: 11px; }
-  .gantt-chart { flex: 1; position: relative; padding: 6px 8px; display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 600px; }
-  .gantt-bar-row { display: flex; position: relative; height: 10px; }
-  .gantt-bar { position: absolute; height: 10px; border-radius: 2px; min-width: 4px; }
-  .gantt-bar-prog { background: rgba(96,165,250,.3); border: 1px solid rgba(96,165,250,.4); }
-  .gantt-bar-real { background: rgba(0,229,160,.4); border: 1px solid rgba(0,229,160,.5); }
-  .gantt-bar-late { background: rgba(248,113,113,.4); border: 1px solid rgba(248,113,113,.5); }
-  .gantt-months { display: flex; border-bottom: 1px solid var(--border); background: var(--bg); }
-  .gantt-month-label-cell { width: 240px; flex-shrink: 0; border-right: 1px solid var(--border); padding: 6px 14px; font-size: 10px; color: var(--text3); }
-  .gantt-months-scale { flex: 1; display: flex; min-width: 600px; }
-  .gantt-month { flex: 1; padding: 6px 4px; font-size: 10px; color: var(--text3); text-align: center; border-right: 1px solid var(--border); white-space: nowrap; overflow: hidden; }
-
-  /* LOADING */
-  .loading { padding: 60px; text-align: center; color: var(--text3); }
-  .loading-spinner { width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* ERROR */
-  .error-box { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2); border-radius: 6px; padding: 16px 18px; color: var(--red); font-size: 12px; margin-bottom: 16px; }
-
-  /* SECTION DIVIDER */
-  .section-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .section-label::after { content:''; flex: 1; height: 1px; background: var(--border); }
-
-  /* TWO COL */
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
-
-  /* FILTER BAR */
-  .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .filter-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--text3); font-family: var(--font-mono); font-size: 11px; padding: 5px 12px; border-radius: 4px; cursor: pointer; transition: all .15s; }
-  .filter-btn:hover { border-color: var(--border2); color: var(--text2); }
-  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,.06); }
-
-  /* EMPTY STATE */
-  .empty { padding: 32px; text-align: center; color: var(--text3); font-size: 12px; }
+/* FULLSCREEN OVERLAY */
+.fs-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+.fs-overlay.open{display:flex;}
+.fs-inner{background:#fff;border-radius:var(--radius);width:100%;height:100%;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.fs-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:0.5px solid #eee;background:#fafafa;flex-shrink:0;}
+.fs-title{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#888;}
+.fs-close{font-family:var(--mono);font-size:12px;padding:4px 12px;border:0.5px solid #ccc;border-radius:4px;background:#fff;color:#888;cursor:pointer;}
+.fs-close:hover{background:#333;color:#fff;border-color:#333;}
+.fs-content{flex:1;overflow:auto;padding:0;}
 </style>
-</head>
-<body>
 
-<div class="topbar">
-  <div class="topbar-left">
-    <div class="logo">VDC<span>.</span>SYSTEM</div>
-    <div class="status-dot"></div>
-  </div>
-  <div class="topbar-right">
-    <span class="last-update" id="last-update">—</span>
-    <button class="btn-refresh" onclick="loadAll()">↺ Actualizar</button>
-  </div>
-</div>
+<div class="panel">
 
-<div class="nav-tabs">
-  <div class="nav-tab active" onclick="showSection('overview')">// overview</div>
-  <div class="nav-tab" onclick="showSection('proyectos')">// proyectos</div>
-  <div class="nav-tab" onclick="showSection('encargos')">// encargos</div>
-  <div class="nav-tab" onclick="showSection('tareas')">// tareas</div>
-  <div class="nav-tab" onclick="showSection('criticos')">// críticos</div>
-  <div class="nav-tab" onclick="showSection('gantt')">// cronograma</div>
-</div>
-
-<div class="main">
-
-  <!-- OVERVIEW -->
-  <div class="section active" id="section-overview">
-    <div id="kpi-area"><div class="loading"><div class="loading-spinner"></div>Cargando datos...</div></div>
-    <div class="section-label">proyectos activos</div>
-    <div id="overview-proyectos"></div>
-    <div class="section-label">encargos activos</div>
-    <div id="overview-encargos"></div>
-  </div>
-
-  <!-- PROYECTOS -->
-  <div class="section" id="section-proyectos">
-    <div id="proyectos-table"></div>
-    <div id="fases-detail"></div>
-  </div>
-
-  <!-- ENCARGOS -->
-  <div class="section" id="section-encargos">
-    <div id="encargos-table"></div>
-  </div>
-
-  <!-- TAREAS -->
-  <div class="section" id="section-tareas">
-    <div class="filter-bar" id="tareas-filters">
-      <button class="filter-btn active" onclick="filterTareas('all', this)">Todas</button>
-      <button class="filter-btn" onclick="filterTareas('Pendiente', this)">Pendientes</button>
-      <button class="filter-btn" onclick="filterTareas('En proceso', this)">En proceso</button>
-      <button class="filter-btn" onclick="filterTareas('Finalizado', this)">Finalizadas</button>
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="logo-box">
+      <svg width="30" height="20" viewBox="0 0 30 20" fill="none">
+        <rect x="1" y="1" width="28" height="18" rx="3" stroke="white" stroke-width="1.5" fill="none"/>
+        <text x="2" y="14" font-family="Arial Black,Arial" font-weight="900" font-size="12" fill="white" letter-spacing="-1">BS</text>
+      </svg>
+      <div class="logo-nm">BESCO</div>
     </div>
-    <div id="tareas-table"></div>
+    <div class="div-v"></div>
+    <div>
+      <div class="ttl">VDC MANAGEMENT</div>
+      <div class="sub">Panel de control · Implementaciones</div>
+    </div>
+  </div>
+  <div class="hdr-r">
+    <span class="upd" id="upd-t">—</span>
+    <button class="btn-upd" id="btn-refresh" onclick="doRefresh()">↺ ACTUALIZAR</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading-block">
+  <div class="loading-bar"></div>
+  <div class="loading-msg">// Conectando con Airtable...</div>
+</div>
+
+<!-- KPIS -->
+<div class="kpis" id="kpis-block" style="display:none;">
+  <div class="kpi"><div class="kpi-bar" style="background:var(--cel);"></div><div class="kl">Avance general</div><div class="kv" id="k-av">—</div><div class="ks" id="k-av-s">—</div></div>
+  <div class="kpi"><div class="kpi-bar" id="kb-proy" style="background:var(--cel);"></div><div class="kl">Proyectos</div><div class="kv" id="k-proy">—</div><div class="ks" id="k-proy-s">—</div></div>
+  <div class="kpi"><div class="kpi-bar" style="background:var(--cel);"></div><div class="kl">Encargos</div><div class="kv" id="k-enc">—</div><div class="ks" id="k-enc-s">—</div></div>
+  <div class="kpi"><div class="kpi-bar" style="background:var(--amb);"></div><div class="kl">Tareas</div><div class="kv" id="k-t">—</div><div class="ks" id="k-t-s">—</div></div>
+  <div class="kpi"><div class="kpi-bar" style="background:var(--amb);"></div><div class="kl">Desviación</div><div class="kv" id="k-desv">—</div><div class="ks" id="k-desv-s">tareas con desviación</div></div>
+  <div class="kpi"><div class="kpi-bar" style="background:var(--roj);"></div><div class="kl">Próx. vencimientos</div><div class="kv" id="k-venc">—</div><div class="ks" id="k-venc-s">tareas por vencer</div></div>
+</div>
+
+<!-- CENTER -->
+<div class="center" id="center-block" style="display:none;">
+  <div class="gcard">
+    <div class="gtb">
+      <span class="gtitle">// Cronograma</span>
+      <div class="gtb-r">
+        <div class="zbtns">
+          <button class="zbtn" onclick="setZoom('year');playChime()">Año</button>
+          <button class="zbtn act" onclick="setZoom('month');playChime()">Meses</button>
+          <button class="zbtn" onclick="setZoom('week');playChime()">Semanas</button>
+          <button class="zbtn" onclick="setZoom('day');playChime()">Días</button>
+        </div>
+        <button class="exp-btn" onclick="openFS('gantt');playChime()" title="Pantalla completa">⤢ Expandir</button>
+      </div>
+    </div>
+    <div class="gscroll" id="gscroll">
+      <div id="g-inner" style="position:relative;">
+        <div id="g-head" style="position:sticky;top:0;z-index:10;display:flex;background:#f5f5f5;border-bottom:1px solid #ddd;"></div>
+        <div id="g-body"></div>
+      </div>
+    </div>
+    <div class="gleg">
+      <div class="leg"><div style="width:16px;height:5px;background:#e0e0e0;border:0.5px solid #ccc;border-radius:1px;"></div>Plan</div>
+      <div class="leg"><div style="width:16px;height:5px;background:#555;border-radius:1px;"></div>Real</div>
+      <div class="leg"><div style="width:16px;height:5px;background:#555;background-image:repeating-linear-gradient(90deg,transparent 0,transparent 3px,rgba(255,255,255,0.7) 3px,rgba(255,255,255,0.7) 5px);border-radius:1px;"></div>Excedente</div>
+      <div class="leg"><div style="width:9px;height:9px;background:#444;transform:rotate(45deg);flex-shrink:0;"></div>Hito</div>
+      <div class="leg"><div style="width:0;height:11px;border-left:1.5px dashed #C00000;opacity:.6;"></div>Hoy</div>
+      <div class="leg" style="margin-left:auto;display:flex;gap:5px;">
+        <div style="display:flex;align-items:center;gap:2px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--cel-bg);border:0.5px solid rgba(0,176,240,0.3);"></div><span style="font-size:9px;color:#555;">Final.</span></div>
+        <div style="display:flex;align-items:center;gap:2px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--amb-bg);border:0.5px solid rgba(255,191,0,0.35);"></div><span style="font-size:9px;color:#555;">Proceso</span></div>
+        <div style="display:flex;align-items:center;gap:2px;"><div style="width:8px;height:8px;border-radius:2px;background:var(--roj-bg);border:0.5px solid rgba(192,0,0,0.25);"></div><span style="font-size:9px;color:#555;">Pend.</span></div>
+      </div>
+    </div>
   </div>
 
-  <!-- CRÍTICOS -->
-  <div class="section" id="section-criticos">
-    <div id="criticos-content"></div>
+  <div class="rcol" id="rcol">
+    <div class="rcard">
+      <div class="rcard-t">// Avance por proyecto</div>
+      <div class="rcard-b" id="r-proy"><div style="font-family:var(--sans);font-size:9px;color:#ccc;">Cargando...</div></div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-t">// Avance por encargo</div>
+      <div class="rcard-b" id="r-enc"><div style="font-family:var(--sans);font-size:9px;color:#ccc;">Sin encargos registrados</div></div>
+    </div>
+    <div class="rcard">
+      <div class="rcard-t">// Curva S — Plazo</div>
+      <div class="rcard-b" style="padding:7px 10px;">
+        <canvas id="curva" width="188" height="100"></canvas>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:3px;">
+          <div class="leg"><svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="#ccc" stroke-width="1.5" stroke-dasharray="3,2"/></svg>Plan</div>
+          <div class="leg"><svg width="16" height="8"><line x1="0" y1="4" x2="16" y2="4" stroke="#333" stroke-width="2"/></svg>Real</div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px;padding:4px 7px;border-radius:5px;background:var(--amb-bg);border:0.5px solid rgba(255,191,0,0.35);">
+          <div style="display:flex;align-items:baseline;gap:4px;">
+            <span style="font-family:var(--mono);font-size:9px;color:var(--amb-txt);text-transform:uppercase;">SPI</span>
+            <span id="spi-val" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--amb-txt);">—</span>
+          </div>
+          <span id="spi-txt" style="font-family:var(--sans);font-size:9px;color:#777;max-width:90px;text-align:right;line-height:1.3;">Calculando...</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;padding:3px 5px;background:#f9f9f9;border-radius:4px;border:0.5px solid #eee;">
+          <div style="display:flex;align-items:center;gap:2px;font-size:8px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--cel-txt);"></div><span style="color:var(--cel-txt);font-weight:600;">≥1.0</span><span style="color:#666;"> Ok</span></div>
+          <div style="display:flex;align-items:center;gap:2px;font-size:8px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--amb-txt);"></div><span style="color:var(--amb-txt);font-weight:600;">0.8-1.0</span><span style="color:#666;"> Leve</span></div>
+          <div style="display:flex;align-items:center;gap:2px;font-size:8px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--roj);"></div><span style="color:var(--roj-txt);font-weight:600;">&lt;0.8</span><span style="color:#666;"> Crítico</span></div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <!-- GANTT -->
-  <div class="section" id="section-gantt">
-    <div id="gantt-content"></div>
+<!-- TABLE -->
+<div class="tcard" id="table-block" style="display:none;">
+  <div class="ttb">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="ttitle">// Tareas</span>
+      <button class="exp-btn" onclick="openFS('tabla');playChime()" title="Pantalla completa">⤢ Expandir</button>
+    </div>
+    <div class="tfilts">
+      <input class="tsrch" id="tsrch" placeholder="Buscar tarea, fase, responsable..." oninput="applyTF();playChime()">
+      <select class="tsel" id="tf-p" onchange="applyTF();playChime()"><option value="">Proyecto</option></select>
+      <select class="tsel" id="tf-f" onchange="applyTF();playChime()"><option value="">Fase/Encargo</option></select>
+      <select class="tsel" id="tf-r" onchange="applyTF();playChime()"><option value="">Responsable</option></select>
+      <select class="tsel" id="tf-e" onchange="applyTF();playChime()"><option value="">Estado</option><option>Finalizado</option><option>En proceso</option><option>Pendiente</option></select>
+      <button class="tclr" onclick="clearAll();playChime()">× limpiar</button>
+    </div>
   </div>
+  <div class="twrap" id="twrap">
+    <table>
+      <thead><tr>
+        <th style="width:28px;">#</th>
+        <th style="width:160px;">Tarea</th>
+        <th style="width:78px;">Fase</th>
+        <th style="width:108px;">Responsable</th>
+        <th style="width:42px;">Av.%</th>
+        <th style="width:62px;">Estado</th>
+        <th style="width:65px;">Ini.Plan</th>
+        <th style="width:65px;">Cie.Plan</th>
+        <th style="width:65px;">Ini.Real</th>
+        <th style="width:65px;">Cie.Real</th>
+        <th style="width:45px;">Desv.</th>
+        <th style="width:58px;">Criticidad</th>
+      </tr></thead>
+      <tbody id="t-body"></tbody>
+    </table>
+  </div>
+  <div class="tftr">
+    <span class="tfinfo" id="t-cnt">—</span>
+    <span class="tfflt" id="t-flt"></span>
+  </div>
+</div>
+</div>
 
+<!-- FULLSCREEN OVERLAY -->
+<div class="fs-overlay" id="fs-overlay">
+  <div class="fs-inner">
+    <div class="fs-header">
+      <span class="fs-title" id="fs-title">—</span>
+      <button class="fs-close" onclick="closeFS()">✕ Cerrar</button>
+    </div>
+    <div class="fs-content" id="fs-content"></div>
+  </div>
 </div>
 
 <script>
-// ============================================================
-// CONFIGURACIÓN — reemplaza con tus credenciales
-// ============================================================
-const API_KEY = 'pat9o8OliUjnUXhmK.cb5dc59d421a135d08332aefc194fb8ad060c484703909dc454258f5724d8b45';
-const BASE_ID = 'appO1ZnWJsWPWFCVQ';
-const TABLES = {
+// ─── CONFIGURACIÓN AIRTABLE ───────────────────────────────────────────────
+const AT_TOKEN = 'pat9o8OliUjnUXhmK.cb5dc59d421a135d08332aefc194fb8ad060c484703909dc454258f5724d8b45';
+const AT_BASE  = 'appO1ZnWJsWPWFCVQ';
+const AT_TBLS  = {
   proyectos: 'tblLRZn52leL103zm',
   fases:     'tbltzBIWnpYisXHOw',
   encargos:  'tbl0WshcvLtWBCjHf',
   tareas:    'tblcyDESggGoNSh3q'
 };
 
-// ============================================================
-// STATE
-// ============================================================
-let DATA = { proyectos: [], fases: [], encargos: [], tareas: [] };
-let selectedProject = null;
-let tareasFilter = 'all';
-
-// ============================================================
-// API
-// ============================================================
-async function fetchTable(tableId, fields) {
-  const url = `https://api.airtable.com/v0/${BASE_ID}/${tableId}?pageSize=100`;
-  const res = await fetch(url, { headers: { Authorization: `Bearer ${API_KEY}` } });
-  if (!res.ok) throw new Error(`Error ${res.status}`);
-  const data = await res.json();
-  let records = data.records;
-  if (data.offset) {
-    // handle pagination if needed
-  }
-  return records.map(r => ({ id: r.id, ...r.fields }));
+// ─── SONIDO ───────────────────────────────────────────────────────────────
+let _actx = null;
+function getACtx(){if(!_actx)_actx=new(window.AudioContext||window.webkitAudioContext)();return _actx;}
+function playChime(){
+  try{
+    const ctx=getACtx(),now=ctx.currentTime;
+    [0,0.1,0.2].forEach((delay,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.type='sine';o.frequency.setValueAtTime([523,659,784][i],now+delay);
+      g.gain.setValueAtTime(0.08,now+delay);g.gain.exponentialRampToValueAtTime(0.0001,now+delay+0.14);
+      o.connect(g);g.connect(ctx.destination);o.start(now+delay);o.stop(now+delay+0.14);
+    });
+  }catch(e){}
 }
 
-async function loadAll() {
-  document.getElementById('kpi-area').innerHTML = '<div class="loading"><div class="loading-spinner"></div>Cargando datos...</div>';
-  try {
-    const [proyectos, fases, encargos, tareas] = await Promise.all([
-      fetchTable(TABLES.proyectos),
-      fetchTable(TABLES.fases),
-      fetchTable(TABLES.encargos),
-      fetchTable(TABLES.tareas)
+// ─── HELPERS ──────────────────────────────────────────────────────────────
+const TODAY = new Date();
+const START = new Date('2025-07-01');
+const END   = new Date('2026-04-30');
+
+function fmtAt(val){
+  if(!val)return '—';
+  // Airtable devuelve fechas como YYYY-MM-DD
+  const d=new Date(val+'T12:00:00');
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function pdStr(s){
+  if(!s||s==='—')return null;
+  const[d,m,y]=s.split('/');
+  return new Date(`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}T12:00:00`);
+}
+function dpct(s){const d=pdStr(s);if(!d)return 0;return Math.max(0,Math.min(1,(d-START)/(END-START)));}
+function getPctBg(av){if(av===100)return'var(--cel-bg)';if(av===0)return'var(--roj-bg)';return'var(--amb-bg)';}
+function getBdgCls(est){if(est==='Finalizado')return'b-cel';if(est==='En proceso')return'b-amb';return'b-roj';}
+function getCritCls(c){if(!c||c==='Cerrado')return'b-gris';if(c==='Alta')return'b-roj';if(c==='Media')return'b-amb';if(c==='Baja')return'b-cel';return'b-gris';}
+
+// ─── FETCH AIRTABLE ───────────────────────────────────────────────────────
+async function fetchAll(tableId){
+  let records=[],offset=null;
+  do{
+    const url=`https://api.airtable.com/v0/${AT_BASE}/${tableId}?pageSize=100${offset?'&offset='+offset:''}`;
+    const r=await fetch(url,{headers:{Authorization:'Bearer '+AT_TOKEN}});
+    const j=await r.json();
+    records=records.concat(j.records||[]);
+    offset=j.offset||null;
+  }while(offset);
+  return records;
+}
+
+// ─── ESTADO GLOBAL ────────────────────────────────────────────────────────
+let TAREAS=[], FASES=[], PROYECTOS=[], ENCARGOS=[], GDATA=[];
+let zoom='month', expanded={}, selGantt=null, selProy=null;
+const LW=188, PW=38;
+
+// ─── CARGA DATOS ──────────────────────────────────────────────────────────
+async function loadData(){
+  const btn=document.getElementById('btn-refresh');
+  btn.disabled=true;btn.textContent='↺ Cargando...';
+  document.getElementById('loading-block').style.display='block';
+
+  try{
+    const[rProy,rFases,rEnc,rTar]=await Promise.all([
+      fetchAll(AT_TBLS.proyectos),
+      fetchAll(AT_TBLS.fases),
+      fetchAll(AT_TBLS.encargos),
+      fetchAll(AT_TBLS.tareas)
     ]);
-    DATA = { proyectos, fases, encargos, tareas };
-    const now = new Date();
-    document.getElementById('last-update').textContent = `actualizado ${now.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})}`;
-    renderAll();
-  } catch(e) {
-    document.getElementById('kpi-area').innerHTML = `<div class="error-box">Error al conectar con Airtable: ${e.message}<br><small>Verifica tu API token en la configuración del archivo.</small></div>`;
+
+    // ── PROYECTOS
+    PROYECTOS=rProy.map(r=>({
+      id:r.id,
+      n:r.fields['Proyecto']||'Sin nombre',
+      av:r.fields['Avance %']||0,
+      est:r.fields['Estado']||'Pendiente',
+      ip:fmtAt(r.fields['Fecha Inicio']),
+      cp:fmtAt(r.fields['Cierre programado']),
+      ir:fmtAt(r.fields['Inicio Real']),
+      cr:fmtAt(r.fields['Cierre real']),
+      desv:r.fields['desviación']||0,
+      crit:r.fields['Criticidad']||'—'
+    }));
+
+    // ── FASES
+    FASES=rFases.map(r=>({
+      id:r.id,
+      n:r.fields['Fase']||'Sin nombre',
+      orden:r.fields['O.']||0,
+      proy:Array.isArray(r.fields['Proyecto'])?r.fields['Proyecto'][0]:r.fields['Proyecto']||'',
+      av:r.fields['Avance %']||0,
+      est:r.fields['Estado']||'Pendiente',
+      ip:fmtAt(r.fields['Fecha Inicio']),
+      cp:fmtAt(r.fields['Cierre programado']),
+      ir:fmtAt(r.fields['Inicio Real']),
+      cr:fmtAt(r.fields['Cierre real']),
+      desv:r.fields['Desviación']||0,
+      crit:r.fields['Criticidad']||'—'
+    }));
+
+    // ── ENCARGOS
+    ENCARGOS=rEnc.map(r=>({
+      id:r.id,
+      n:r.fields['Encargos']||'Sin nombre',
+      av:r.fields['Avance %']||0,
+      est:r.fields['Estado']||'Pendiente',
+      ip:fmtAt(r.fields['Fecha Inicio']),
+      cp:fmtAt(r.fields['Cierre programado']),
+      ir:fmtAt(r.fields['Inicio Real']),
+      cr:fmtAt(r.fields['Cierre real']),
+      desv:r.fields['Desviación']||0,
+      crit:r.fields['Criticidad']||'—'
+    }));
+
+    // ── TAREAS
+    TAREAS=rTar.map((r,i)=>({
+      id:i+1,
+      atId:r.id,
+      n:r.fields['Tareas']||'Sin nombre',
+      proy:'',
+      f:'',
+      resp:r.fields['Responsable']||'—',
+      av:r.fields['Avance %']||0,
+      est:r.fields['Estado']||'Pendiente',
+      ip:fmtAt(r.fields['Fecha Inicio']),
+      cp:fmtAt(r.fields['Cierre programado']),
+      ir:fmtAt(r.fields['Inicio Real']),
+      cr:fmtAt(r.fields['Cierre real']),
+      desv:r.fields['Desviación']||0,
+      crit:r.fields['Criticidad']||'—',
+      faseId:Array.isArray(r.fields['Fase'])?r.fields['Fase'][0]:(r.fields['Fase']||null)
+    }));
+
+    // ── Resolver nombres de fase y proyecto en tareas
+    const faseMap={};
+    FASES.forEach(f=>faseMap[f.id]=f);
+    const proyMap={};
+    PROYECTOS.forEach(p=>proyMap[p.id]=p);
+
+    TAREAS.forEach(t=>{
+      if(t.faseId&&faseMap[t.faseId]){
+        t.f=faseMap[t.faseId].n;
+        const fObj=faseMap[t.faseId];
+        if(fObj.proy&&proyMap[fObj.proy])t.proy=proyMap[fObj.proy].n;
+        else if(fObj.proy)t.proy=fObj.proy;
+      }
+    });
+
+    // ── Construir GDATA
+    buildGData();
+
+    // ── Poblar filtros
+    populateFilters();
+
+    // ── Mostrar UI
+    document.getElementById('loading-block').style.display='none';
+    document.getElementById('kpis-block').style.display='grid';
+    document.getElementById('center-block').style.display='grid';
+    document.getElementById('table-block').style.display='block';
+
+    // ── Render
+    renderGantt();
+    renderRBars();
+    renderTTable(TAREAS,'');
+    updateKPIs(TAREAS);
+    setTimeout(()=>updateCurva(TAREAS),200);
+
+    document.getElementById('upd-t').textContent='ACT. '+new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+    playChime();
+
+  }catch(err){
+    document.getElementById('loading-block').innerHTML=`<div class="loading-msg" style="color:var(--roj-txt);">// Error al conectar con Airtable: ${err.message}</div>`;
   }
+
+  btn.disabled=false;btn.textContent='↺ ACTUALIZAR';
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
-function fmtDate(d) {
-  if (!d) return '—';
-  const dt = new Date(d);
-  if (isNaN(dt)) return d;
-  return dt.toLocaleDateString('es-PE', {day:'2-digit',month:'2-digit',year:'2-digit'});
+function buildGData(){
+  GDATA=[];
+  expanded={};
+
+  PROYECTOS.forEach(p=>{
+    const pId='p_'+p.id;
+    expanded[pId]=false;
+    const fasesDelProy=FASES.filter(f=>f.proy===p.id||f.proy===p.n);
+    const fIds=fasesDelProy.map(f=>'f_'+f.id);
+
+    GDATA.push({id:pId,tipo:'proyecto',n:p.n,av:p.av,ip:p.ip,cp:p.cp,ir:p.ir,cr:p.cr,ch:fIds});
+
+    fasesDelProy.sort((a,b)=>a.orden-b.orden).forEach(f=>{
+      const fId='f_'+f.id;
+      expanded[fId]=false;
+      const tareasDelFase=TAREAS.filter(t=>t.faseId===f.id);
+      const tIds=tareasDelFase.map(t=>'t_'+t.atId);
+
+      GDATA.push({id:fId,tipo:'fase',n:f.n,av:f.av,ip:f.ip,cp:f.cp,ir:f.ir,cr:f.cr,parent:pId,ch:tIds});
+
+      tareasDelFase.forEach(t=>{
+        GDATA.push({id:'t_'+t.atId,tipo:'tarea',n:t.n,av:t.av,ip:t.ip,cp:t.cp,ir:t.ir,cr:t.cr,parent:fId});
+      });
+    });
+  });
 }
 
-function fmtPct(v) {
-  if (v === undefined || v === null || v === '') return '—';
-  return Math.round(v) + '%';
+function populateFilters(){
+  const selP=document.getElementById('tf-p');
+  const selF=document.getElementById('tf-f');
+  const selR=document.getElementById('tf-r');
+
+  selP.innerHTML='<option value="">Proyecto</option>';
+  [...new Set(TAREAS.map(t=>t.proy).filter(Boolean))].forEach(v=>{
+    selP.innerHTML+=`<option>${v}</option>`;
+  });
+
+  selF.innerHTML='<option value="">Fase/Encargo</option>';
+  [...new Set(TAREAS.map(t=>t.f).filter(Boolean))].forEach(v=>{
+    selF.innerHTML+=`<option>${v}</option>`;
+  });
+
+  selR.innerHTML='<option value="">Responsable</option>';
+  [...new Set(TAREAS.map(t=>t.resp).filter(Boolean))].forEach(v=>{
+    selR.innerHTML+=`<option>${v}</option>`;
+  });
 }
 
-function statusBadge(s) {
-  if (!s) return '<span class="badge badge-pendiente">Pendiente</span>';
-  const sl = s.toLowerCase();
-  if (sl.includes('proceso')) return `<span class="badge badge-proceso">${s}</span>`;
-  if (sl.includes('finaliz')) return `<span class="badge badge-finalizado">${s}</span>`;
-  return `<span class="badge badge-pendiente">${s}</span>`;
+// ─── KPIs ─────────────────────────────────────────────────────────────────
+function updateKPIs(tareas){
+  const total=tareas.length;
+  const fin=tareas.filter(t=>t.est==='Finalizado').length;
+  const proc=tareas.filter(t=>t.est==='En proceso').length;
+  const pend=tareas.filter(t=>t.est==='Pendiente').length;
+  const avGen=total>0?Math.round(tareas.reduce((s,t)=>s+t.av,0)/total)+'%':'—';
+  const conDesv=tareas.filter(t=>t.desv>0).length;
+  const baja=tareas.filter(t=>t.desv>0&&t.crit==='Baja').length;
+  const media=tareas.filter(t=>t.desv>0&&t.crit==='Media').length;
+  const alta=tareas.filter(t=>t.desv>0&&t.crit==='Alta').length;
+
+  const hoy=TODAY.getTime();
+  const d7=hoy+7*86400000, d15=hoy+15*86400000;
+  const venc7=tareas.filter(t=>t.est!=='Finalizado'&&pdStr(t.cp)&&pdStr(t.cp).getTime()<=d7).length;
+  const venc15=tareas.filter(t=>t.est!=='Finalizado'&&pdStr(t.cp)&&pdStr(t.cp).getTime()<=d15&&pdStr(t.cp).getTime()>d7).length;
+
+  document.getElementById('k-av').textContent=avGen;
+  document.getElementById('k-av-s').innerHTML=`<span>${fin} de ${total} tareas</span><br><span style="color:var(--amb-txt);font-weight:600;">${proc} en proceso</span>`;
+
+  const nproy=PROYECTOS.length;
+  const pproy=PROYECTOS.filter(p=>p.est==='Pendiente').length;
+  const aproy=PROYECTOS.filter(p=>p.est==='En proceso'||p.est==='En Proceso').length;
+  const fproy=PROYECTOS.filter(p=>p.est==='Finalizado'||p.est==='Cerrado').length;
+  document.getElementById('k-proy').textContent=nproy;
+  document.getElementById('k-proy-s').innerHTML=`<b style="color:var(--roj-txt);">${pproy} pend.</b> · <b style="color:var(--amb-txt);">${aproy} proceso</b> · <b style="color:var(--cel-txt);">${fproy} cerrados</b>`;
+
+  const nenc=ENCARGOS.length;
+  const penc=ENCARGOS.filter(e=>e.est==='Pendiente').length;
+  const aenc=ENCARGOS.filter(e=>e.est==='En proceso'||e.est==='En Proceso').length;
+  const fenc=ENCARGOS.filter(e=>e.est==='Finalizado'||e.est==='Cerrado').length;
+  document.getElementById('k-enc').textContent=nenc||0;
+  document.getElementById('k-enc-s').innerHTML=`<b style="color:var(--roj-txt);">${penc} pend.</b> · <b style="color:var(--amb-txt);">${aenc} proceso</b> · <b style="color:var(--cel-txt);">${fenc} cerrados</b>`;
+
+  document.getElementById('k-t').textContent=total;
+  document.getElementById('k-t-s').innerHTML=`<b style="color:var(--roj-txt);">${pend} pend.</b> · <b style="color:var(--amb-txt);">${proc} proceso</b> · <b style="color:var(--cel-txt);">${fin} final.</b>`;
+
+  document.getElementById('k-desv').textContent=conDesv;
+  document.getElementById('k-desv-s').innerHTML=`tareas con desviación<br><b style="color:var(--cel-txt);">Baja: ${baja}</b> · <b style="color:var(--amb-txt);">Media: ${media}</b> · <b style="color:var(--roj-txt);">Alta: ${alta}</b>`;
+
+  document.getElementById('k-venc').textContent=venc7+venc15;
+  document.getElementById('k-venc-s').innerHTML=`tareas por vencer<br><b style="color:var(--roj-txt);">7d: ${venc7}</b> · <b style="color:var(--amb-txt);">15d: ${venc15}</b>`;
 }
 
-function critBadge(c) {
-  if (!c) return '<span class="crit-baja">Baja</span>';
-  if (c === 'Alta') return `<span class="crit-alta">▲ Alta</span>`;
-  if (c === 'Media') return `<span class="crit-media">◆ Media</span>`;
-  if (c === 'Cerrado') return `<span class="crit-cerrado">✓ Cerrado</span>`;
-  return `<span class="crit-baja">● Baja</span>`;
-}
-
-function progressBar(pct, crit) {
-  const p = Math.min(100, Math.max(0, pct || 0));
-  const cls = crit === 'Alta' ? 'red' : crit === 'Media' ? 'yellow' : '';
-  return `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill ${cls}" style="width:${p}%"></div></div><span class="progress-pct">${p}%</span></div>`;
-}
-
-function devBadge(d) {
-  if (d === undefined || d === null || d === '') return '—';
-  const v = Math.round(d);
-  if (v > 0) return `<span style="color:var(--red)">+${v}%</span>`;
-  if (v < 0) return `<span style="color:var(--accent)">${v}%</span>`;
-  return '<span style="color:var(--text3)">0%</span>';
-}
-
-// ============================================================
-// RENDER ALL
-// ============================================================
-function renderAll() {
-  renderKPIs();
-  renderOverviewProyectos();
-  renderOverviewEncargos();
-  renderProyectosTable();
-  renderEncargosTable();
-  renderTareasTable();
-  renderCriticos();
+// ─── TABLA ────────────────────────────────────────────────────────────────
+function applyTF(){
+  const q=document.getElementById('tsrch').value.toLowerCase();
+  const fP=document.getElementById('tf-p').value;
+  const fF=document.getElementById('tf-f').value;
+  const fR=document.getElementById('tf-r').value;
+  const fE=document.getElementById('tf-e').value;
+  document.querySelectorAll('.tsel').forEach(s=>s.classList.toggle('act',s.value!==''));
+  const filtered=TAREAS.filter(t=>{
+    if(q&&![t.n,t.resp,t.f,t.proy].some(v=>v&&v.toLowerCase().includes(q)))return false;
+    if(fP&&t.proy!==fP)return false;
+    if(fF&&t.f!==fF)return false;
+    if(fR&&t.resp!==fR)return false;
+    if(fE&&t.est!==fE)return false;
+    return true;
+  });
+  const parts=[];
+  if(fP)parts.push(fP.split(' ').slice(0,2).join(' ')+'…');
+  if(fF)parts.push(fF);if(fR)parts.push(fR.split(' ')[0]);if(fE)parts.push(fE);if(q)parts.push(`"${q}"`);
+  renderTTable(filtered,parts.length?'Filtro: '+parts.join(' · '):'');
+  updateKPIs(filtered);
+  updateCurva(filtered);
   renderGantt();
 }
 
-// ============================================================
-// KPIs
-// ============================================================
-function renderKPIs() {
-  const p = DATA.proyectos;
-  const e = DATA.encargos;
-  const t = DATA.tareas;
-
-  const pActivos = p.filter(x => x['Estado'] !== 'Finalizado').length;
-  const pCerrados = p.filter(x => x['Estado'] === 'Finalizado').length;
-  const eActivos = e.filter(x => x['Estado'] !== 'Finalizado').length;
-  const tPendientes = t.filter(x => x['Estado'] === 'Pendiente').length;
-  const tProceso = t.filter(x => x['Estado'] === 'En proceso').length;
-  const tFin = t.filter(x => x['Estado'] === 'Finalizado').length;
-  const tAlta = t.filter(x => x['Criticidad'] === 'Alta').length;
-
-  document.getElementById('kpi-area').innerHTML = `
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Proyectos activos</div>
-        <div class="kpi-value accent">${pActivos}</div>
-        <div class="kpi-sub">${pCerrados} cerrados</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Encargos activos</div>
-        <div class="kpi-value blue">${eActivos}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Tareas pendientes</div>
-        <div class="kpi-value">${tPendientes}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Tareas en proceso</div>
-        <div class="kpi-value blue">${tProceso}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Tareas finalizadas</div>
-        <div class="kpi-value accent">${tFin}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Criticidad alta</div>
-        <div class="kpi-value red">${tAlta}</div>
-        <div class="kpi-sub">tareas críticas</div>
-      </div>
-    </div>`;
+function renderTTable(data,fltTxt){
+  const body=document.getElementById('t-body');
+  document.getElementById('t-cnt').textContent=`Mostrando ${data.length} de ${TAREAS.length} tareas`;
+  document.getElementById('t-flt').textContent=fltTxt||'';
+  if(!data.length){body.innerHTML=`<tr><td colspan="12" style="padding:14px;text-align:center;color:#bbb;font-size:10px;">Sin resultados</td></tr>`;return;}
+  body.innerHTML=data.map(t=>`<tr>
+    <td style="color:#ccc;font-family:var(--mono);font-size:8px;">${t.id}</td>
+    <td style="font-weight:${t.est==='Pendiente'?'600':'400'};color:${t.est==='Pendiente'?'#333':'#555'};" title="${t.n}">${t.n}</td>
+    <td style="color:#666;">${t.f||'—'}</td>
+    <td style="color:#555;">${t.resp}</td>
+    <td><span style="font-family:var(--mono);font-size:8px;font-weight:700;color:#111;background:${getPctBg(t.av)};padding:1px 4px;border-radius:3px;">${t.av}%</span></td>
+    <td><span class="bdg ${getBdgCls(t.est)}">${t.est}</span></td>
+    <td style="font-family:var(--mono);font-size:8px;color:#999;">${t.ip}</td>
+    <td style="font-family:var(--mono);font-size:8px;color:#999;">${t.cp}</td>
+    <td style="font-family:var(--mono);font-size:8px;color:#999;">${t.ir}</td>
+    <td style="font-family:var(--mono);font-size:8px;color:#999;">${t.cr}</td>
+    <td style="font-family:var(--mono);font-size:8px;${t.desv>0?'color:var(--roj-txt);font-weight:600;':'color:#bbb;'}">${t.desv>0?'+'+t.desv+'d':'—'}</td>
+    <td><span class="bdg ${getCritCls(t.crit)}">${t.crit||'—'}</span></td>
+  </tr>`).join('');
 }
 
-// ============================================================
-// OVERVIEW PROYECTOS (resumen compacto)
-// ============================================================
-function renderOverviewProyectos() {
-  const activos = DATA.proyectos.filter(x => x['Estado'] !== 'Finalizado');
-  if (!activos.length) { document.getElementById('overview-proyectos').innerHTML = '<div class="empty">Sin proyectos activos</div>'; return; }
-  const rows = activos.map(p => `
-    <tr class="clickable" onclick="selectProjectFromOverview('${p.id}')">
-      <td class="td-name">${p['Proyecto'] || '—'}</td>
-      <td>${p['Cliente'] || '—'}</td>
-      <td>${statusBadge(p['Estado'])}</td>
-      <td>${progressBar(p['Avance %'], p['Criticidad'])}</td>
-      <td>${fmtDate(p['Fecha Inicio'])}</td>
-      <td>${fmtDate(p['Cierre programado'])}</td>
-      <td>${devBadge(p['Desviación'])}</td>
-      <td>${critBadge(p['Criticidad'])}</td>
-    </tr>`).join('');
-  document.getElementById('overview-proyectos').innerHTML = `
-    <div class="table-wrap" style="margin-bottom:24px">
-      <table>
-        <thead><tr><th>Proyecto</th><th>Cliente</th><th>Estado</th><th>Avance</th><th>Inicio</th><th>Cierre prog.</th><th>Desviación</th><th>Criticidad</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
+function clearAll(){
+  document.getElementById('tsrch').value='';
+  document.querySelectorAll('.tsel').forEach(s=>{s.value='';s.classList.remove('act');});
+  selGantt=null;selProy=null;
+  Object.keys(expanded).forEach(k=>expanded[k]=false);
+  renderGantt();renderTTable(TAREAS,'');updateKPIs(TAREAS);updateCurva(TAREAS);
 }
 
-// ============================================================
-// OVERVIEW ENCARGOS
-// ============================================================
-function renderOverviewEncargos() {
-  const activos = DATA.encargos.filter(x => x['Estado'] !== 'Finalizado');
-  if (!activos.length) { document.getElementById('overview-encargos').innerHTML = '<div class="empty">Sin encargos activos</div>'; return; }
-  const rows = activos.map(e => `
-    <tr>
-      <td class="td-name">${e['Encargos'] || e['Nombre'] || '—'}</td>
-      <td>${statusBadge(e['Estado'])}</td>
-      <td>${progressBar(e['Avance %'], e['Criticidad'])}</td>
-      <td>${fmtDate(e['Fecha Inicio'])}</td>
-      <td>${fmtDate(e['Cierre programado'])}</td>
-      <td>${devBadge(e['Desviación'])}</td>
-      <td>${critBadge(e['Criticidad'])}</td>
-    </tr>`).join('');
-  document.getElementById('overview-encargos').innerHTML = `
-    <div class="table-wrap" style="margin-bottom:24px">
-      <table>
-        <thead><tr><th>Encargo</th><th>Estado</th><th>Avance</th><th>Inicio</th><th>Cierre prog.</th><th>Desviación</th><th>Criticidad</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-}
-
-// ============================================================
-// PROYECTOS TABLE
-// ============================================================
-function renderProyectosTable(filterProj) {
-  const list = filterProj ? DATA.proyectos.filter(p => p.id === filterProj) : DATA.proyectos;
-  const rows = list.map(p => `
-    <tr class="clickable ${selectedProject === p.id ? 'selected' : ''}" onclick="selectProject('${p.id}')">
-      <td class="td-name">${p['Proyecto'] || '—'}</td>
-      <td>${p['Cliente'] || '—'}</td>
-      <td>${p['Tipo'] || 'Implementación'}</td>
-      <td>${statusBadge(p['Estado'])}</td>
-      <td>${progressBar(p['Avance %'], p['Criticidad'])}</td>
-      <td class="td-mono">${fmtDate(p['Fecha Inicio'])}</td>
-      <td class="td-mono">${fmtDate(p['Cierre programado'])}</td>
-      <td class="td-mono">${fmtDate(p['Cierre real'])}</td>
-      <td>${devBadge(p['Desviación'])}</td>
-      <td>${critBadge(p['Criticidad'])}</td>
-    </tr>`).join('');
-  document.getElementById('proyectos-table').innerHTML = `
-    <div class="table-wrap">
-      <div class="table-header">
-        <span class="table-title">Proyectos de implementación</span>
-        <span class="table-count">${list.length} registros</span>
-      </div>
-      <table>
-        <thead><tr><th>Proyecto</th><th>Cliente</th><th>Tipo</th><th>Estado</th><th>Avance</th><th>Inicio</th><th>Cierre prog.</th><th>Cierre real</th><th>Desviación</th><th>Criticidad</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="10" class="empty">Sin datos</td></tr>'}</tbody>
-      </table>
-    </div>`;
-  renderFasesDetail();
-}
-
-function selectProject(id) {
-  selectedProject = selectedProject === id ? null : id;
-  renderProyectosTable();
-}
-
-function selectProjectFromOverview(id) {
-  selectedProject = id;
-  showSection('proyectos');
-  renderProyectosTable();
-}
-
-// ============================================================
-// FASES DETAIL
-// ============================================================
-function renderFasesDetail() {
-  const container = document.getElementById('fases-detail');
-  let fases = DATA.fases;
-  let title = 'Fases — todos los proyectos';
-  if (selectedProject) {
-    const proj = DATA.proyectos.find(p => p.id === selectedProject);
-    const projName = proj ? proj['Proyecto'] : '';
-    fases = DATA.fases.filter(f => {
-      const linked = f['Proyecto'];
-      if (!linked) return false;
-      if (Array.isArray(linked)) return linked.includes(selectedProject);
-      return linked === selectedProject;
-    });
-    title = `Fases — ${projName}`;
-  }
-  fases = [...fases].sort((a,b) => (a['Orden']||0) - (b['Orden']||0));
-  const rows = fases.map(f => `
-    <tr>
-      <td style="color:var(--text3);font-size:11px">${f['Orden'] || '—'}</td>
-      <td class="td-name">${f['Fase'] || '—'}</td>
-      <td>${statusBadge(f['Estado'])}</td>
-      <td>${progressBar(f['Avance %'], f['Criticidad'])}</td>
-      <td class="td-mono">${fmtDate(f['Fecha Inicio'])}</td>
-      <td class="td-mono">${fmtDate(f['Cierre programado'])}</td>
-      <td class="td-mono">${f['Cierre real'] || '—'}</td>
-      <td>${devBadge(f['Desviación'])}</td>
-      <td>${critBadge(f['Criticidad'])}</td>
-    </tr>`).join('');
-  container.innerHTML = `
-    <div class="table-wrap">
-      <div class="table-header">
-        <span class="table-title">${title}</span>
-        <span class="table-count">${fases.length} fases</span>
-      </div>
-      <table>
-        <thead><tr><th>#</th><th>Fase</th><th>Estado</th><th>Avance</th><th>Inicio</th><th>Cierre prog.</th><th>Cierre real</th><th>Desviación</th><th>Criticidad</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="9" class="empty">Selecciona un proyecto</td></tr>'}</tbody>
-      </table>
-    </div>`;
-}
-
-// ============================================================
-// ENCARGOS TABLE
-// ============================================================
-function renderEncargosTable() {
-  const list = DATA.encargos;
-  const rows = list.map(e => `
-    <tr>
-      <td class="td-name">${e['Encargos'] || e['Nombre'] || '—'}</td>
-      <td>${statusBadge(e['Estado'])}</td>
-      <td>${progressBar(e['Avance %'], e['Criticidad'])}</td>
-      <td class="td-mono">${fmtDate(e['Fecha Inicio'])}</td>
-      <td class="td-mono">${fmtDate(e['Cierre programado'])}</td>
-      <td class="td-mono">${e['Cierre real'] || '—'}</td>
-      <td>${devBadge(e['Desviación'])}</td>
-      <td>${critBadge(e['Criticidad'])}</td>
-    </tr>`).join('');
-  document.getElementById('encargos-table').innerHTML = `
-    <div class="table-wrap">
-      <div class="table-header">
-        <span class="table-title">Encargos</span>
-        <span class="table-count">${list.length} registros</span>
-      </div>
-      <table>
-        <thead><tr><th>Encargo</th><th>Estado</th><th>Avance</th><th>Inicio</th><th>Cierre prog.</th><th>Cierre real</th><th>Desviación</th><th>Criticidad</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="8" class="empty">Sin encargos</td></tr>'}</tbody>
-      </table>
-    </div>`;
-}
-
-// ============================================================
-// TAREAS TABLE
-// ============================================================
-function renderTareasTable() {
-  let list = DATA.tareas;
-  if (tareasFilter !== 'all') list = list.filter(t => t['Estado'] === tareasFilter);
-  const rows = list.map(t => {
-    const faseId = Array.isArray(t['Fase']) ? t['Fase'][0] : t['Fase'];
-    const encId = Array.isArray(t['Encargo']) ? t['Encargo'][0] : t['Encargo'];
-    const fase = DATA.fases.find(f => f.id === faseId);
-    const enc = DATA.encargos.find(e => e.id === encId);
-    const contexto = fase ? fase['Fase'] : enc ? (enc['Encargos'] || enc['Nombre']) : '—';
-    return `<tr>
-      <td class="td-name">${t['Tarea'] || t['Name'] || '—'}</td>
-      <td style="color:var(--text3)">${contexto}</td>
-      <td>${t['Responsable'] ? (Array.isArray(t['Responsable']) ? t['Responsable'].map(r=>r.name||r).join(', ') : (t['Responsable'].name || t['Responsable'])) : '—'}</td>
-      <td>${statusBadge(t['Estado'])}</td>
-      <td>${progressBar(t['Avance %'], t['Criticidad'])}</td>
-      <td class="td-mono">${fmtDate(t['Fecha Inicio'])}</td>
-      <td class="td-mono">${fmtDate(t['Cierre programado'])}</td>
-      <td class="td-mono">${fmtDate(t['Cierre real'])}</td>
-      <td>${devBadge(t['Desviación'])}</td>
-      <td>${critBadge(t['Criticidad'])}</td>
-    </tr>`;
-  }).join('');
-  document.getElementById('tareas-table').innerHTML = `
-    <div class="table-wrap">
-      <div class="table-header">
-        <span class="table-title">Tareas</span>
-        <span class="table-count">${list.length} registros</span>
-      </div>
-      <table>
-        <thead><tr><th>Tarea</th><th>Fase / Encargo</th><th>Responsable</th><th>Estado</th><th>Avance</th><th>Inicio</th><th>Cierre prog.</th><th>Cierre real</th><th>Desviación</th><th>Criticidad</th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="10" class="empty">Sin tareas</td></tr>'}</tbody>
-      </table>
-    </div>`;
-}
-
-function filterTareas(filter, btn) {
-  tareasFilter = filter;
-  document.querySelectorAll('#tareas-filters .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTareasTable();
-}
-
-// ============================================================
-// CRÍTICOS
-// ============================================================
-function renderCriticos() {
-  const critTareas = DATA.tareas.filter(t => t['Criticidad'] === 'Alta');
-  const critFases = DATA.fases.filter(f => f['Criticidad'] === 'Alta');
-  const critProyectos = DATA.proyectos.filter(p => p['Criticidad'] === 'Alta');
-
-  let html = '';
-
-  if (critProyectos.length) {
-    const rows = critProyectos.map(p => `<tr>
-      <td class="td-name">${p['Proyecto']||'—'}</td>
-      <td>${p['Cliente']||'—'}</td>
-      <td>${progressBar(p['Avance %'],'Alta')}</td>
-      <td>${devBadge(p['Desviación'])}</td>
-      <td class="td-mono">${fmtDate(p['Cierre programado'])}</td>
-    </tr>`).join('');
-    html += `<div class="section-label">proyectos críticos</div>
-    <div class="table-wrap" style="margin-bottom:24px">
-      <table><thead><tr><th>Proyecto</th><th>Cliente</th><th>Avance</th><th>Desviación</th><th>Cierre prog.</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>`;
-  }
-
-  if (critFases.length) {
-    const rows = critFases.map(f => `<tr>
-      <td class="td-name">${f['Fase']||'—'}</td>
-      <td>${progressBar(f['Avance %'],'Alta')}</td>
-      <td>${devBadge(f['Desviación'])}</td>
-      <td class="td-mono">${fmtDate(f['Cierre programado'])}</td>
-    </tr>`).join('');
-    html += `<div class="section-label">fases críticas</div>
-    <div class="table-wrap" style="margin-bottom:24px">
-      <table><thead><tr><th>Fase</th><th>Avance</th><th>Desviación</th><th>Cierre prog.</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>`;
-  }
-
-  if (critTareas.length) {
-    const rows = critTareas.map(t => {
-      const faseId = Array.isArray(t['Fase']) ? t['Fase'][0] : t['Fase'];
-      const fase = DATA.fases.find(f => f.id === faseId);
-      return `<tr>
-        <td class="td-name">${t['Tarea']||t['Name']||'—'}</td>
-        <td style="color:var(--text3)">${fase ? fase['Fase'] : '—'}</td>
-        <td>${t['Responsable'] ? (Array.isArray(t['Responsable']) ? t['Responsable'].map(r=>r.name||r).join(', ') : (t['Responsable'].name||t['Responsable'])) : '—'}</td>
-        <td>${progressBar(t['Avance %'],'Alta')}</td>
-        <td>${devBadge(t['Desviación'])}</td>
-        <td class="td-mono">${fmtDate(t['Cierre programado'])}</td>
-      </tr>`;
-    }).join('');
-    html += `<div class="section-label">tareas críticas</div>
-    <div class="table-wrap">
-      <table><thead><tr><th>Tarea</th><th>Fase</th><th>Responsable</th><th>Avance</th><th>Desviación</th><th>Cierre prog.</th></tr></thead>
-      <tbody>${rows}</tbody></table></div>`;
-  }
-
-  if (!html) html = '<div class="empty" style="padding:60px">✓ Sin elementos críticos en este momento</div>';
-  document.getElementById('criticos-content').innerHTML = html;
-}
-
-// ============================================================
-// GANTT
-// ============================================================
-function renderGantt() {
-  const allItems = [];
-
-  // collect proyectos + fases
-  DATA.proyectos.forEach(p => {
-    allItems.push({ type: 'proyecto', label: p['Proyecto']||'—', inicio: p['Fecha Inicio'], cierreProg: p['Cierre programado'], cierreReal: p['Cierre real'], avance: p['Avance %'] });
-    const fases = DATA.fases.filter(f => {
-      const linked = f['Proyecto'];
-      if (!linked) return false;
-      if (Array.isArray(linked)) return linked.includes(p.id);
-      return linked === p.id;
-    }).sort((a,b) => (a['Orden']||0)-(b['Orden']||0));
-    fases.forEach(f => {
-      allItems.push({ type: 'fase', label: f['Fase']||'—', inicio: f['Fecha Inicio'], cierreProg: f['Cierre programado'], cierreReal: f['Cierre real'], avance: f['Avance %'] });
-    });
-  });
-
-  // collect encargos + tareas
-  DATA.encargos.forEach(e => {
-    allItems.push({ type: 'encargo', label: (e['Encargos']||e['Nombre']||'—'), inicio: e['Fecha Inicio'], cierreProg: e['Cierre programado'], cierreReal: e['Cierre real'], avance: e['Avance %'] });
-    const tareas = DATA.tareas.filter(t => {
-      const linked = Array.isArray(t['Encargo']) ? t['Encargo'] : [t['Encargo']];
-      return linked.includes(e.id);
-    });
-    tareas.forEach(t => {
-      allItems.push({ type: 'tarea', label: t['Tarea']||t['Name']||'—', inicio: t['Fecha Inicio'], cierreProg: t['Cierre programado'], cierreReal: t['Cierre real'], avance: t['Avance %'] });
-    });
-  });
-
-  // determine date range
-  const dates = allItems.flatMap(i => [i.inicio, i.cierreProg, i.cierreReal]).filter(Boolean).map(d => new Date(d));
-  if (!dates.length) { document.getElementById('gantt-content').innerHTML = '<div class="empty">Sin datos para el cronograma</div>'; return; }
-  const minD = new Date(Math.min(...dates));
-  const maxD = new Date(Math.max(...dates));
-  minD.setDate(1);
-  maxD.setMonth(maxD.getMonth()+1); maxD.setDate(0);
-  const totalDays = (maxD - minD) / 86400000;
-
-  function pct(d) {
-    if (!d) return null;
-    const dt = new Date(d);
-    return Math.max(0, Math.min(100, ((dt - minD) / 86400000) / totalDays * 100));
-  }
-
-  // build months
-  const months = [];
-  let cur = new Date(minD);
-  while (cur <= maxD) {
-    months.push(cur.toLocaleDateString('es-PE', {month:'short', year:'2-digit'}));
-    cur.setMonth(cur.getMonth()+1);
-  }
-
-  const monthsHTML = months.map(m => `<div class="gantt-month">${m}</div>`).join('');
-
-  const rowsHTML = allItems.map(item => {
-    const labelClass = item.type === 'proyecto' || item.type === 'encargo' ? 'gantt-level-proj' :
-                       item.type === 'fase' ? 'gantt-level-fase' : 'gantt-level-tarea';
-    const l = pct(item.inicio);
-    const r = pct(item.cierreProg);
-    const rr = pct(item.cierreReal || new Date().toISOString());
-    let barsHTML = '';
-    if (l !== null && r !== null) {
-      barsHTML += `<div class="gantt-bar-row"><div class="gantt-bar gantt-bar-prog" style="left:${l}%;width:${Math.max(0.5,r-l)}%"></div></div>`;
-    }
-    if (l !== null && rr !== null) {
-      const cls = rr > r ? 'gantt-bar-late' : 'gantt-bar-real';
-      barsHTML += `<div class="gantt-bar-row"><div class="gantt-bar ${cls}" style="left:${l}%;width:${Math.max(0.5,rr-l)}%"></div></div>`;
-    }
-    return `<div class="gantt-row">
-      <div class="gantt-label"><span class="gantt-label-text ${labelClass}">${item.label}</span></div>
-      <div class="gantt-chart">${barsHTML}</div>
-    </div>`;
+// ─── BARRAS DERECHA ───────────────────────────────────────────────────────
+function renderRBars(){
+  const rp=document.getElementById('r-proy');
+  if(!PROYECTOS.length){rp.innerHTML=`<div style="font-family:var(--sans);font-size:9px;color:#ccc;">Sin proyectos</div>`;return;}
+  rp.innerHTML=PROYECTOS.map(p=>{
+    const cls=p.av===100?'b-cel':p.av===0?'b-roj':'b-amb';
+    const clr=p.av===100?'var(--cel)':p.av===0?'var(--roj)':'var(--amb)';
+    const tclr=p.av===100?'var(--cel-txt)':p.av===0?'var(--roj-txt)':'var(--amb-txt)';
+    const lbl=p.est==='Finalizado'||p.est==='Cerrado'?'cerrado':p.est==='En proceso'||p.est==='En Proceso'?'proceso':'pend.';
+    const short=p.n.length>18?p.n.substring(0,18)+'…':p.n;
+    return `<div class="bar-item"><div class="bar-lbl" title="${p.n}">${short}</div><div class="bar-track"><div class="bar-fill" style="width:${p.av}%;background:${clr};"></div></div><span class="bar-pct" style="color:${tclr};">${p.av}%</span><span class="bbdg ${cls}">${lbl}</span></div>`;
   }).join('');
 
-  document.getElementById('gantt-content').innerHTML = `
-    <div class="gantt-wrap">
-      <div class="gantt-header">
-        <span class="table-title">Cronograma</span>
-        <span style="font-size:11px;color:var(--text3)">
-          <span style="display:inline-block;width:10px;height:4px;background:rgba(96,165,250,.4);border-radius:1px;margin-right:4px"></span>Programado &nbsp;
-          <span style="display:inline-block;width:10px;height:4px;background:rgba(0,229,160,.5);border-radius:1px;margin-right:4px"></span>Real &nbsp;
-          <span style="display:inline-block;width:10px;height:4px;background:rgba(248,113,113,.5);border-radius:1px;margin-right:4px"></span>Con retraso
-        </span>
-      </div>
-      <div class="gantt-months">
-        <div class="gantt-month-label-cell">elemento</div>
-        <div class="gantt-months-scale">${monthsHTML}</div>
-      </div>
-      <div>${rowsHTML}</div>
-    </div>`;
+  const re=document.getElementById('r-enc');
+  if(!ENCARGOS.length){re.innerHTML=`<div style="font-family:var(--sans);font-size:9px;color:#ccc;padding:2px 0;">Sin encargos registrados</div>`;return;}
+  re.innerHTML=ENCARGOS.map(e=>{
+    const cls=e.av===100?'b-cel':e.av===0?'b-roj':'b-amb';
+    const clr=e.av===100?'var(--cel)':e.av===0?'var(--roj)':'var(--amb)';
+    const tclr=e.av===100?'var(--cel-txt)':e.av===0?'var(--roj-txt)':'var(--amb-txt)';
+    const lbl=e.est==='Finalizado'||e.est==='Cerrado'?'cerrado':e.est==='En proceso'?'proceso':'pend.';
+    const short=e.n.length>18?e.n.substring(0,18)+'…':e.n;
+    return `<div class="bar-item"><div class="bar-lbl" title="${e.n}">${short}</div><div class="bar-track"><div class="bar-fill" style="width:${e.av}%;background:${clr};"></div></div><span class="bar-pct" style="color:${tclr};">${e.av}%</span><span class="bbdg ${cls}">${lbl}</span></div>`;
+  }).join('');
 }
 
-// ============================================================
-// NAV
-// ============================================================
-function showSection(id) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('section-' + id).classList.add('active');
-  document.querySelector(`.nav-tab[onclick="showSection('${id}')"]`).classList.add('active');
+// ─── CURVA S ──────────────────────────────────────────────────────────────
+function updateCurva(tareas){
+  const canvas=document.getElementById('curva');if(!canvas)return;
+  const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height;
+  const PAD={top:10,right:8,bottom:20,left:24};const cW=W-PAD.left-PAD.right,cH=H-PAD.top-PAD.bottom;
+  ctx.clearRect(0,0,W,H);
+  const months=['Jul','Ago','Set','Oct','Nov','Dic','Ene','Feb','Mar','Abr'];
+  const mDates=['2025-07-01','2025-08-01','2025-09-01','2025-10-01','2025-11-01','2025-12-01','2026-01-01','2026-02-01','2026-03-01','2026-04-01','2026-04-30'];
+  const xStep=cW/months.length;
+  const total=TAREAS.length;
+  if(!total)return;
+  const pvData=mDates.map(md=>{const d=new Date(md);return Math.round(TAREAS.filter(t=>pdStr(t.cp)&&pdStr(t.cp)<=d).length/total*100);});
+  const evData=mDates.map(md=>{const d=new Date(md);return Math.round(tareas.filter(t=>t.av===100&&pdStr(t.cr)&&pdStr(t.cr)<=d).length/total*100);});
+  ctx.strokeStyle='#f0f0f0';ctx.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=PAD.top+cH*(1-i/4);ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(W-PAD.right,y);ctx.stroke();ctx.fillStyle='#ccc';ctx.font='8px Courier New';ctx.textAlign='right';ctx.fillText(Math.round(i*25)+'%',PAD.left-2,y+3);}
+  months.forEach((m,i)=>{ctx.fillStyle='#bbb';ctx.font='7px sans-serif';ctx.textAlign='center';ctx.fillText(m,PAD.left+i*xStep+xStep/2,H-3);});
+  const todayPct=(TODAY-START)/(END-START);
+  const tx=Math.max(0,Math.min(1,todayPct))*cW;
+  ctx.beginPath();ctx.strokeStyle='rgba(192,0,0,0.35)';ctx.lineWidth=1;ctx.setLineDash([2,2]);ctx.moveTo(PAD.left+tx,PAD.top);ctx.lineTo(PAD.left+tx,H-PAD.bottom);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();mDates.forEach((md,i)=>{const x=PAD.left+(i/months.length)*cW,y=PAD.top+cH*(1-evData[i]/100);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.lineTo(PAD.left+((mDates.length-1)/months.length)*cW,PAD.top+cH);ctx.lineTo(PAD.left,PAD.top+cH);ctx.closePath();ctx.fillStyle='rgba(0,0,0,0.04)';ctx.fill();
+  function dLine(data,color,dash){ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.5;if(dash)ctx.setLineDash([3,2]);else ctx.setLineDash([]);mDates.forEach((md,i)=>{const x=PAD.left+(i/months.length)*cW,y=PAD.top+cH*(1-data[i]/100);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();ctx.setLineDash([]);}
+  dLine(pvData,'#ccc',true);dLine(evData,'#333',false);
+  mDates.forEach((md,i)=>{if(evData[i]>0&&evData[i]<100){const x=PAD.left+(i/months.length)*cW,y=PAD.top+cH*(1-evData[i]/100);ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fillStyle='#333';ctx.fill();}});
+
+  // SPI
+  const lastEv=evData.filter(v=>v>0);const lastPv=pvData.filter(v=>v>0);
+  const evNow=lastEv.length?lastEv[lastEv.length-1]:0;
+  const pvNow=lastPv.length?lastPv[lastPv.length-1]:0;
+  const spi=pvNow>0?(evNow/pvNow).toFixed(2):'—';
+  document.getElementById('spi-val').textContent=spi;
+  const spiN=parseFloat(spi);
+  const spiClr=isNaN(spiN)?'var(--amb-txt)':spiN>=1?'var(--cel-txt)':spiN>=0.8?'var(--amb-txt)':'var(--roj-txt)';
+  document.getElementById('spi-val').style.color=spiClr;
+  document.getElementById('spi-txt').textContent=isNaN(spiN)?'Sin datos suficientes':`Por cada día planificado se avanza ${spi} del trabajo previsto.`;
 }
 
-// ============================================================
-// INIT
-// ============================================================
-loadAll();
+// ─── GANTT ────────────────────────────────────────────────────────────────
+const GNIVEL={
+  proyecto:{planBg:'#e8e8e8',planBorder:'#ccc',realBg:'#333',tag:'#333',tagTxt:'#fff',nameColor:'#222',nameSize:'11px',nameW:'700',barH:9,indent:0},
+  fase:{planBg:'#dedede',planBorder:'#bbb',realBg:'#555',tag:'#555',tagTxt:'#fff',nameColor:'#444',nameSize:'10px',nameW:'600',barH:7,indent:8},
+  encargo:{planBg:'#d8d8d8',planBorder:'#bbb',realBg:'#777',tag:'#777',tagTxt:'#fff',nameColor:'#555',nameSize:'10px',nameW:'500',barH:7,indent:8},
+  tarea:{planBg:'#d4d4d4',planBorder:'#bbb',realBg:'#999',tag:'#bbb',tagTxt:'#555',nameColor:'#666',nameSize:'9px',nameW:'400',barH:5,indent:24},
+};
+
+function getTC(){
+  if(zoom==='year')return{cols:[{l:'2025',w:90},{l:'2026',w:90}],rows:1};
+  if(zoom==='month'){const ms=['Jul','Ago','Set','Oct','Nov','Dic','Ene','Feb','Mar','Abr'],ys=[2025,2025,2025,2025,2025,2025,2026,2026,2026,2026];return{cols:ms.map((m,i)=>({l:m,w:48,y:ys[i]})),rows:2,yearSpans:[{l:'2025',n:6},{l:'2026',n:4}]};}
+  if(zoom==='week'){const cols=[];const d=new Date('2025-07-01');let wk=27,y25=0,y26=0;while(d<=END){const y=d.getFullYear();cols.push({l:'S'+wk,w:23,y});y===2025?y25++:y26++;wk++;if(wk>53)wk=1;d.setDate(d.getDate()+7);}return{cols,rows:2,yearSpans:[{l:'2025',n:y25},{l:'2026',n:y26}]};}
+  const cols=[],mSpans=[],ySpans=[],mN=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
+  const d=new Date('2025-07-01');let cm='',cy=0,mc=0,yc=0;
+  while(d<=END){const m=mN[d.getMonth()],y=d.getFullYear(),k=m+y;if(k!==cm){if(cm)mSpans.push({l:cm.replace(/\d/g,''),n:mc});cm=k;mc=0;}if(y!==cy){if(cy)ySpans.push({l:cy,n:yc});cy=y;yc=0;}cols.push({l:d.getDate()+'',w:15,y});mc++;yc++;d.setDate(d.getDate()+1);}
+  if(cm)mSpans.push({l:cm.replace(/\d/g,''),n:mc});if(cy)ySpans.push({l:cy,n:yc});
+  return{cols,rows:3,yearSpans:ySpans,monthSpans:mSpans};
+}
+function getTW(tc){return tc.cols.reduce((s,c)=>s+c.w,0);}
+
+function renderGH(tc,tw){
+  const hdr=document.getElementById('g-head');hdr.innerHTML='';hdr.style.minWidth=(LW+PW+tw)+'px';
+  const rh1=tc.rows>=2?18:22,rh2=17,rh3=15;
+  const lh=document.createElement('div');lh.style.cssText=`width:${LW}px;flex-shrink:0;border-right:0.5px solid #ddd;`;
+  lh.innerHTML=`<div style="height:${rh1}px;display:flex;align-items:center;padding:0 7px;font-family:var(--mono);font-size:7px;color:#999;text-transform:uppercase;letter-spacing:.06em;border-bottom:0.5px solid #ddd;">Nivel — Actividad</div>${tc.rows>=2?`<div style="height:${rh2}px;border-bottom:0.5px solid #ddd;"></div>`:''}${tc.rows>=3?`<div style="height:${rh3}px;border-bottom:0.5px solid #ddd;"></div>`:''}`;
+  const ph=document.createElement('div');ph.style.cssText=`width:${PW}px;flex-shrink:0;border-right:0.5px solid #ddd;`;
+  ph.innerHTML=`<div style="height:${rh1}px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:7px;color:#999;border-bottom:0.5px solid #ddd;">%</div>${tc.rows>=2?`<div style="height:${rh2}px;border-bottom:0.5px solid #ddd;"></div>`:''}${tc.rows>=3?`<div style="height:${rh3}px;border-bottom:0.5px solid #ddd;"></div>`:''}`;
+  const th=document.createElement('div');th.style.cssText=`min-width:${tw}px;`;
+  if(tc.yearSpans){const r=document.createElement('div');r.style.cssText=`display:flex;height:${rh1}px;border-bottom:0.5px solid #ddd;`;tc.yearSpans.forEach(ys=>{const w=ys.n*(tc.cols[0]?.w||48);const c=document.createElement('div');c.style.cssText=`width:${w}px;min-width:${w}px;font-family:var(--mono);font-size:8px;font-weight:700;color:#444;text-align:center;border-left:1px solid #bbb;display:flex;align-items:center;justify-content:center;background:#efefef;`;c.textContent=ys.l;r.appendChild(c);});th.appendChild(r);}
+  else{const r=document.createElement('div');r.style.cssText=`display:flex;height:${rh1}px;border-bottom:0.5px solid #ddd;`;tc.cols.forEach(col=>{const c=document.createElement('div');c.style.cssText=`width:${col.w}px;min-width:${col.w}px;font-family:var(--mono);font-size:8px;font-weight:700;color:#444;text-align:center;border-left:0.5px solid #ddd;display:flex;align-items:center;justify-content:center;background:#efefef;`;c.textContent=col.l;r.appendChild(c);});th.appendChild(r);}
+  if(tc.rows>=2){const r=document.createElement('div');r.style.cssText=`display:flex;height:${rh2}px;border-bottom:0.5px solid #ddd;`;if(tc.monthSpans){tc.monthSpans.forEach(ms=>{const w=ms.n*(tc.cols[0]?.w||15);const c=document.createElement('div');c.style.cssText=`width:${w}px;min-width:${w}px;font-family:var(--mono);font-size:7px;color:#666;text-align:center;border-left:0.5px solid #ddd;overflow:hidden;white-space:nowrap;display:flex;align-items:center;justify-content:center;`;c.textContent=ms.l;r.appendChild(c);});}else{tc.cols.forEach(col=>{const c=document.createElement('div');c.style.cssText=`width:${col.w}px;min-width:${col.w}px;font-family:var(--mono);font-size:7px;color:#777;text-align:center;border-left:0.5px solid #eee;overflow:hidden;white-space:nowrap;display:flex;align-items:center;justify-content:center;`;c.textContent=col.l;r.appendChild(c);});}th.appendChild(r);}
+  if(tc.rows>=3){const r=document.createElement('div');r.style.cssText=`display:flex;height:${rh3}px;border-bottom:0.5px solid #ddd;`;tc.cols.forEach(col=>{const c=document.createElement('div');c.style.cssText=`width:${col.w}px;min-width:${col.w}px;font-family:var(--mono);font-size:6px;color:#bbb;text-align:center;border-left:0.5px solid #eee;overflow:hidden;white-space:nowrap;display:flex;align-items:center;justify-content:center;`;c.textContent=col.l;r.appendChild(c);});th.appendChild(r);}
+  hdr.appendChild(lh);hdr.appendChild(ph);hdr.appendChild(th);
+}
+
+function getFilteredGData(){
+  const fP=document.getElementById('tf-p').value;
+  const fF=document.getElementById('tf-f').value;
+  if(!fP&&!fF)return GDATA;
+  const ids=new Set();
+  GDATA.forEach(r=>{
+    if(fP&&r.tipo==='proyecto'&&r.n===fP)ids.add(r.id);
+    if(fF&&r.tipo==='fase'&&r.n===fF)ids.add(r.id);
+    if(fF&&r.tipo==='encargo'&&r.n===fF)ids.add(r.id);
+  });
+  const visible=new Set();
+  GDATA.forEach(r=>{
+    if(ids.has(r.id)){visible.add(r.id);if(r.parent)visible.add(r.parent);if(r.ch)r.ch.forEach(c=>visible.add(c));}
+    if(r.parent&&ids.has(r.parent))visible.add(r.id);
+  });
+  return GDATA.filter(r=>visible.has(r.id));
+}
+
+function renderGB(tc,tw){
+  const body=document.getElementById('g-body');body.innerHTML='';
+  document.querySelectorAll('.today-lbl').forEach(e=>e.remove());
+  const todayPct=(TODAY-START)/(END-START);
+  const todayX=Math.max(0,Math.min(1,todayPct))*tw;
+  const gdata=getFilteredGData();
+  const rows=getGVisible(gdata);
+  rows.forEach(row=>{
+    const nv=GNIVEL[row.tipo]||GNIVEL.tarea;
+    const rowH=row.tipo==='proyecto'?32:row.tipo==='fase'||row.tipo==='encargo'?28:23;
+    const isHito=row.ip===row.cp&&row.ip!=='—';
+    const planL=dpct(row.ip)*tw,planW=Math.max(2,(dpct(row.cp)-dpct(row.ip))*tw);
+    const realL=dpct(row.ir)*tw,realW=Math.max(2,(dpct(row.cr)-dpct(row.ir))*tw);
+    const planEnd=planL+planW,over=Math.max(0,(realL+realW)-planEnd);
+    const bH=nv.barH,planTop=Math.floor((rowH-bH*2-3)/2),realTop=planTop+bH+3;
+    const hasC=row.ch&&row.ch.length>0;
+    const isSel=selGantt===row.id;
+    const div=document.createElement('div');
+    div.style.cssText=`display:flex;min-height:${rowH}px;border-bottom:0.5px solid #f0f0f0;align-items:stretch;min-width:${LW+PW+tw}px;background:${isSel?'#f0f5ff':'#fff'};`;
+    div.onmouseenter=()=>{if(!isSel)div.style.background='#fafafa';};
+    div.onmouseleave=()=>{div.style.background=isSel?'#f0f5ff':'#fff';};
+    const tog=hasC?`<span style="display:inline-flex;align-items:center;justify-content:center;width:10px;height:10px;border:0.5px solid #bbb;border-radius:2px;font-size:8px;color:#777;font-family:var(--mono);cursor:pointer;flex-shrink:0;">${expanded[row.id]?'−':'+'}</span>`:'<span style="width:12px;display:inline-block;flex-shrink:0;"></span>';
+    const tagLbl=row.tipo==='proyecto'?'PROY':row.tipo==='fase'?'FASE':row.tipo==='encargo'?'ENC':'TAREA';
+    const lDiv=document.createElement('div');
+    lDiv.style.cssText=`width:${LW}px;flex-shrink:0;border-right:0.5px solid #ddd;display:flex;align-items:center;padding:3px ${3+nv.indent}px;gap:3px;cursor:pointer;overflow:hidden;`;
+    lDiv.innerHTML=`${tog}<span style="font-family:var(--mono);font-size:7px;font-weight:700;padding:1px 3px;border-radius:2px;background:${nv.tag};color:${nv.tagTxt};white-space:nowrap;flex-shrink:0;">${tagLbl}</span><span style="font-family:var(--sans);font-size:${nv.nameSize};font-weight:${nv.nameW};color:${nv.nameColor};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${row.n}</span>`;
+    const pDiv=document.createElement('div');
+    pDiv.style.cssText=`width:${PW}px;flex-shrink:0;border-right:0.5px solid #ddd;display:flex;align-items:center;justify-content:center;`;
+    pDiv.innerHTML=`<span style="font-family:var(--mono);font-size:${row.tipo==='proyecto'?'9':'8'}px;font-weight:700;color:#111;background:${getPctBg(row.av)};padding:1px 3px;border-radius:3px;">${row.av}%</span>`;
+    const bDiv=document.createElement('div');bDiv.style.cssText=`min-width:${tw}px;position:relative;height:${rowH}px;`;
+    const tl=document.createElement('div');tl.style.cssText=`position:absolute;left:${todayX}px;top:0;bottom:0;width:0;border-left:1.5px dashed #C00000;opacity:.5;z-index:2;`;bDiv.appendChild(tl);
+    if(isHito){const hd=document.createElement('div');hd.style.cssText=`position:absolute;left:${planL-5}px;top:${Math.floor(rowH/2)-5}px;width:10px;height:10px;background:#444;transform:rotate(45deg);z-index:3;`;bDiv.appendChild(hd);}
+    else{
+      const pb=document.createElement('div');pb.style.cssText=`position:absolute;left:${planL}px;width:${planW}px;height:${bH}px;background:${nv.planBg};border:0.5px solid ${nv.planBorder};border-radius:2px;top:${planTop}px;`;bDiv.appendChild(pb);
+      const solidW=over>0?realW-over:realW;
+      const rb=document.createElement('div');rb.style.cssText=`position:absolute;left:${realL}px;width:${realW}px;height:${bH}px;border-radius:2px;top:${realTop}px;opacity:${row.av===0?0.4:1};overflow:hidden;`;
+      rb.innerHTML=`<div style="position:absolute;left:0;width:${solidW}px;height:100%;background:${nv.realBg};"></div>${over>0?`<div style="position:absolute;left:${solidW}px;width:${over}px;height:100%;background:${nv.realBg};background-image:repeating-linear-gradient(90deg,transparent 0,transparent 3px,rgba(255,255,255,0.65) 3px,rgba(255,255,255,0.65) 5px);"></div>`:''}`;
+      bDiv.appendChild(rb);
+    }
+    lDiv.onclick=()=>{
+      playChime();
+      if(hasC)expanded[row.id]=!expanded[row.id];
+      selGantt=selGantt===row.id?null:row.id;
+      if(row.tipo==='proyecto'){selProy=selGantt?row.n:null;updateCurva(TAREAS.filter(t=>selProy?t.proy===selProy:true));}
+      renderGantt();
+      const fase=row.tipo==='fase'?row.n:null;
+      const proy=row.tipo==='proyecto'?row.n:selProy;
+      const tFilt=TAREAS.filter(t=>{if(proy&&t.proy!==proy)return false;if(fase&&t.f!==fase)return false;return true;});
+      renderTTable(tFilt,row.n);
+      updateKPIs(tFilt);
+    };
+    div.appendChild(lDiv);div.appendChild(pDiv);div.appendChild(bDiv);body.appendChild(div);
+  });
+  const lbl=document.createElement('div');lbl.className='today-lbl';
+  lbl.style.cssText=`position:absolute;left:${LW+PW+todayX+2}px;top:2px;font-family:var(--mono);font-size:8px;color:#C00000;z-index:11;pointer-events:none;background:rgba(255,255,255,0.9);padding:0 2px;`;
+  lbl.textContent='hoy';document.getElementById('g-inner').appendChild(lbl);
+}
+
+function getGVisible(gdata){
+  const rows=[];
+  (gdata||GDATA).filter(r=>!r.parent).forEach(r=>{
+    rows.push(r);
+    if(expanded[r.id]&&r.ch){
+      r.ch.forEach(cid=>{
+        const c=(gdata||GDATA).find(x=>x.id===cid);
+        if(c){rows.push(c);if(expanded[c.id]&&c.ch){c.ch.forEach(gcid=>{const gc=(gdata||GDATA).find(x=>x.id===gcid);if(gc)rows.push(gc);});}}
+      });
+    }
+  });
+  return rows;
+}
+
+function renderGantt(){const tc=getTC(),tw=getTW(tc);renderGH(tc,tw);renderGB(tc,tw);}
+function setZoom(z){zoom=z;document.querySelectorAll('.zbtn').forEach(b=>b.classList.remove('act'));const map={year:0,month:1,week:2,day:3};document.querySelectorAll('.zbtn')[map[z]].classList.add('act');renderGantt();}
+
+// ─── FULLSCREEN ───────────────────────────────────────────────────────────
+function openFS(tipo){
+  const overlay=document.getElementById('fs-overlay');
+  const content=document.getElementById('fs-content');
+  const title=document.getElementById('fs-title');
+  overlay.classList.add('open');
+  if(tipo==='gantt'){
+    title.textContent='// Cronograma — Pantalla completa';
+    const src=document.querySelector('.gcard');
+    content.innerHTML='';
+    const clone=src.cloneNode(true);
+    clone.style.cssText='height:100%;border-radius:0;box-shadow:none;border:none;';
+    clone.querySelector('.gscroll').style.maxHeight='calc(100vh - 140px)';
+    content.appendChild(clone);
+  } else {
+    title.textContent='// Tareas — Pantalla completa';
+    const src=document.querySelector('.tcard');
+    content.innerHTML='';
+    const clone=src.cloneNode(true);
+    clone.style.cssText='border-radius:0;box-shadow:none;border:none;height:100%;display:flex;flex-direction:column;';
+    clone.querySelector('.twrap').style.maxHeight='calc(100vh - 140px)';
+    content.appendChild(clone);
+  }
+}
+
+function closeFS(){
+  document.getElementById('fs-overlay').classList.remove('open');
+  document.getElementById('fs-content').innerHTML='';
+}
+
+function doRefresh(){loadData();}
+
+// ─── INICIO ───────────────────────────────────────────────────────────────
+loadData();
 </script>
-</body>
-</html>
